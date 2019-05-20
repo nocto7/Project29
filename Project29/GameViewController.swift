@@ -22,10 +22,20 @@ class GameViewController: UIViewController {
     @IBOutlet var launchButton: UIButton!
     @IBOutlet var playerLabel: UILabel!
     
+    @IBOutlet var player1Score: UILabel!
+    @IBOutlet var player2Score: UILabel!
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
+    @IBOutlet var windLabel: UILabel!
+    
+    
+    var score = (0, 0) {
+        didSet {
+            player1Score.text = "Score: \(score.0)"
+            player2Score.text = "Score: \(score.1)"
+        }
+    }
+    
+    func loadMainGame() {
         if let view = self.view as! SKView? {
             // Load the SKScene from 'GameScene.sks'
             if let scene = SKScene(fileNamed: "GameScene") {
@@ -43,6 +53,25 @@ class GameViewController: UIViewController {
             view.showsFPS = true
             view.showsNodeCount = true
         }
+    }
+    
+    func loadEndGame(winner: Int) -> SKScene? {
+        // Load the SKScene from 'EndGameScene.sks'
+        if let scene = SKScene(fileNamed: "EndGameScene") {
+            // Set the scale mode to scale to fit the window
+            scene.scaleMode = .aspectFill
+            if let endGame = scene as? EndGameScene {
+                endGame.winner = winner
+                return endGame
+            }
+        }
+        return nil
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        loadMainGame()
         
         angleChanged(self)
         velocityChanged(self)
@@ -95,5 +124,27 @@ class GameViewController: UIViewController {
         velocitySlider.isHidden = false
         velocityLabel.isHidden = false
         launchButton.isHidden = false
+    }
+    
+    func scorePlayer(_ currentPlayer: Int) -> SKScene? {
+        if currentPlayer == 1 {
+            score.0 += 1
+        } else if currentPlayer == 2 {
+            score.1 += 1
+        }
+        if score.0 == 3 || score.1 == 3 {
+            print ("calling end game")
+            return endGame(winner: currentPlayer)
+        }
+        return nil
+    }
+    
+    func endGame(winner: Int) -> SKScene? {
+        print ("in end game")
+        player1Score.isHidden = true
+        player2Score.isHidden = true
+        playerLabel.isHidden = true
+        windLabel.isHidden = true
+        return loadEndGame(winner: winner)
     }
 }

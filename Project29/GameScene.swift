@@ -22,13 +22,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var player2: SKSpriteNode!
     var banana: SKSpriteNode!
     var currentPlayer = 1
+    var windSpeed: Int = 0
     
     
     override func didMove(to view: SKView) {
+        
         backgroundColor = UIColor(hue: 0.669, saturation: 0.99, brightness: 0.67, alpha: 1)
         createBuildings()
         createPlayers()
+        windSpeed = Int.random(in: -50...50)
+        DispatchQueue.main.async {
+            self.viewController?.windLabel.text = "Wind Speed: \(self.windSpeed)mph"
+        }
         
+
         physicsWorld.contactDelegate = self
     }
     
@@ -49,7 +56,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func launch(angle: Int, velocity: Int) {
-        let speed = Double(velocity) / 10
+        let speed = Double(velocity + windSpeed) / 10
         let radians = deg2rad(degrees: angle)
         
         if banana != nil {
@@ -160,15 +167,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         banana.removeFromParent()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            let newGame = GameScene(size: self.size)
-            newGame.viewController = self.viewController
-            self.viewController?.currentGame = newGame
-            
-            self.changePlayer()
-            newGame.currentPlayer = self.currentPlayer
-            
-            let transition = SKTransition.doorway(withDuration: 1.5)
-            self.view?.presentScene(newGame, transition: transition)
+            let endGame = self.viewController?.scorePlayer(self.currentPlayer)
+            if endGame != nil {
+                let transition = SKTransition.doorway(withDuration: 1.5)
+                self.view?.presentScene(endGame!, transition: transition)
+            } else {
+                let newGame = GameScene(size: self.size)
+                newGame.viewController = self.viewController
+                self.viewController?.currentGame = newGame
+                
+                self.changePlayer()
+                newGame.currentPlayer = self.currentPlayer
+                
+                let transition = SKTransition.doorway(withDuration: 1.5)
+                self.view?.presentScene(newGame, transition: transition)
+            }
         }
     }
     
